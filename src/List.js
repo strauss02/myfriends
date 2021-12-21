@@ -1,31 +1,42 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useState, useEffect } from 'react'
 import mainContext from './mainContext'
 import FriendListItem from './FriendListItem'
+import { db } from './drillDB'
 
 function List() {
   const { state, dispatch } = useContext(mainContext)
+
+  function onResetClick() {
+    dispatch({
+      type: 'INITIALIZE_STATE',
+    })
+  }
 
   function handleAddClick(e) {
     return dispatch({
       payload: {
         friendAge: ageInputValue,
         friendName: nameInputValue,
-        friendId: ageInputValue + nameInputValue,
+        friendId: nameInputValue + ageInputValue,
       },
       type: 'ADD_FRIEND',
     })
   }
 
-  function handleEditclick(e) {
-    return dispatch({
-      payload: {
-        friendAge: ageInputValue,
-        freindName: nameInputValue,
-        friendId: crypto.randomBytes(8),
-      },
-      type: 'UPDATE_FRIEND',
+  function initializeList() {
+    db.forEach((friend) => {
+      dispatch({
+        payload: {
+          friendAge: friend.friendAge,
+          friendName: friend.friendName,
+          friendId: friend.friendName + friend.friendAge,
+        },
+        type: 'ADD_FRIEND',
+      })
     })
   }
+
+  useEffect(initializeList, [])
 
   const [nameInputValue, setNameInputValue] = useState('')
   const [ageInputValue, setAgeInputValue] = useState('')
@@ -47,12 +58,10 @@ function List() {
         />
         <button onClick={handleAddClick}> Add friend</button>
       </div>
-
+      <div>
+        <button onClick={onResetClick}> reset list </button>
+      </div>
       <ul>
-        <li>
-          friend name : {'david'}, age: {'25'}
-          <button onClick={handleEditclick}>edit friend</button>
-        </li>
         {state.map((friendObj) => {
           return (
             <FriendListItem
